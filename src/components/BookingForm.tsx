@@ -21,9 +21,24 @@ interface BookingFormProps {
   onRemoveService: (service: ServiceItem) => void;
   config: IntegrationConfig;
   onSuccess: () => void;
+  hasAgreedPrivacy: boolean;
+  setHasAgreedPrivacy: (val: boolean) => void;
+  hasOpenedPrivacy: boolean;
+  setHasOpenedPrivacy: (val: boolean) => void;
+  onOpenPrivacy: () => void;
 }
 
-export default function BookingForm({ selectedServices, onRemoveService, config, onSuccess }: BookingFormProps) {
+export default function BookingForm({ 
+  selectedServices, 
+  onRemoveService, 
+  config, 
+  onSuccess,
+  hasAgreedPrivacy,
+  setHasAgreedPrivacy,
+  hasOpenedPrivacy,
+  setHasOpenedPrivacy,
+  onOpenPrivacy
+}: BookingFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState("");
@@ -130,6 +145,18 @@ export default function BookingForm({ selectedServices, onRemoveService, config,
       return;
     }
 
+    if (!hasOpenedPrivacy) {
+      setErrorMsg("يرجى قراءة سياسة الخصوصية بالضغط على الرابط أسفل قبل تأكيد الحجز");
+      setHasOpenedPrivacy(true);
+      onOpenPrivacy();
+      return;
+    }
+
+    if (!hasAgreedPrivacy) {
+      setErrorMsg("يجب تحديد مربع الموافقة على سياسة الخصوصية للمتابعة وتأكيد الحجز");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Format phone to standard international 9665xxxxxxxx for WhatsApp redirection
@@ -169,14 +196,21 @@ export default function BookingForm({ selectedServices, onRemoveService, config,
       // 2. If Telegram is configured and Apps Script is NOT used, send directly from client
       // (This serves as a fully static client-side fallback)
       if (!config.appsScriptUrl && config.telegramToken && config.telegramChatId) {
-        const servicesList = selectedServices.map(s => `• ${s.name} (${s.price} ر.س)`).join("\n");
+        const servicesNames = selectedServices.map(s => s.name).join(" ، ");
         const messageText = `🔔 *حجز جديد في صالون ڤيڤيد بيوتي!*\n\n` +
           `👤 *الاسم:* ${name}\n` +
           `📱 *الجوال:* ${formattedPhone}\n` +
-          `📅 *التاريخ والوقت:* ${date} | ${time}\n` +
-          `💆‍♀️ *الخدمات المختارة:*\n${servicesList}\n\n` +
-          `💰 *المجموع الإجمالي:* ${totalPrice} ر.س\n\n` +
-          `💬 _تفضلي باستخدام الأزرار التفاعلية أدناه للتواصل السريع والمباشر مع العميلة:_`;
+          `📅 *الموعد:* ${date} | الساعة ${time}\n` +
+          `💆‍♀️ *الخدمات:* ${servicesNames}\n` +
+          `💰 *المجموع:* ${totalPrice} ر.س\n\n` +
+          `━━━━━━━━━━━━━━\n` +
+          `💌 *الرسالة الجاهزة للإرسال للعميلة (نسخ سريع):*\n\n` +
+          `أهلاً بكِ عزيزتي في صالون ڤيڤيد بيوتي ✨\n` +
+          `يسعدنا تأكيد طلب حجزكِ معنا:\n` +
+          `• نوع الخدمة: ${servicesNames}\n` +
+          `• الموعد: ${date} | الساعة ${time}\n` +
+          `• حالة الحجز: \n` +
+          `━━━━━━━━━━━━━━`;
 
         const telegramResponse = await fetch(`https://api.telegram.org/bot${config.telegramToken}/sendMessage`, {
           method: "POST",
@@ -291,7 +325,7 @@ export default function BookingForm({ selectedServices, onRemoveService, config,
               </p>
             </div>
             <a
-              href="https://maps.app.goo.gl/3H9jQ4Ditvi1mBS87"
+              href={`https://search.google.com/local/writereview?placeid=${config.googlePlaceId || "ChIJW0_QVQBXfxURqYqkcSzIp08"}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-200 hover:bg-amber-300 text-stone-950 text-xs font-bold transition shadow-md cursor-pointer mx-auto"
@@ -496,6 +530,40 @@ export default function BookingForm({ selectedServices, onRemoveService, config,
                 <p className="text-xs text-stone-400 text-center py-2">برجاء مراجعة لوحة التحكم للتأكد من تهيئة أوقات الدوام بشكل صحيح.</p>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Privacy Policy Checkbox */}
+        <div className="bg-stone-950/45 border border-amber-200/5 rounded-2xl p-4.5 space-y-2 mt-4">
+          <div className="flex items-start gap-3">
+            <input
+              id="privacyAgreementCheckbox"
+              type="checkbox"
+              checked={hasAgreedPrivacy}
+              onChange={(e) => {
+                if (e.target.checked && !hasOpenedPrivacy) {
+                  setHasOpenedPrivacy(true);
+                  onOpenPrivacy();
+                } else {
+                  setHasAgreedPrivacy(e.target.checked);
+                }
+              }}
+              className="mt-1 w-4.5 h-4.5 text-amber-300 bg-stone-900 border-amber-200/20 rounded focus:ring-0 focus:ring-offset-0 accent-amber-200 cursor-pointer"
+            />
+            <label htmlFor="privacyAgreementCheckbox" className="text-xs text-stone-300 leading-relaxed select-none text-right">
+              أقر وأوافق على{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setHasOpenedPrivacy(true);
+                  onOpenPrivacy();
+                }}
+                className="text-amber-200 hover:text-amber-100 underline font-bold cursor-pointer inline bg-transparent p-0 border-0"
+              >
+                سياسة الخصوصية وسرية البيانات
+              </button>{" "}
+              الخاصة بصالون ڤيڤيد بيوتي لضمان سرية وأمان معلوماتي المسجلة.
+            </label>
           </div>
         </div>
 

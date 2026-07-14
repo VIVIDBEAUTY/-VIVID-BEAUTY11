@@ -24,7 +24,8 @@ import {
   HelpCircle,
   Star,
   Heart,
-  ShoppingBag
+  ShoppingBag,
+  User
 } from "lucide-react";
 
 const GOOGLE_REVIEWS = [
@@ -59,10 +60,10 @@ const GOOGLE_REVIEWS = [
 ];
 
 const SLIDESHOW_IMAGES = [
-  "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", // Salon Luxury Interior
-  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200", // Hair styling
-  "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=1200", // Nail care
-  "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=1200"  // Eye lashes and brows
+  "https://vividbeauty.github.io/-VIVID-BEAUTY/bg1.jpg",
+  "https://vividbeauty.github.io/-VIVID-BEAUTY/bg2.jpg",
+  "https://vividbeauty.github.io/-VIVID-BEAUTY/bg3.jpg",
+  "https://vividbeauty.github.io/-VIVID-BEAUTY/bg4.jpg"
 ];
 
 export default function App() {
@@ -72,19 +73,26 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(false);
+  const [hasOpenedPrivacy, setHasOpenedPrivacy] = useState(false);
   const [flyingParticles, setFlyingParticles] = useState<{ id: number; x: number; y: number; label: string }[]>([]);
   const [reviews, setReviews] = useState(GOOGLE_REVIEWS);
   
   // Load config from localStorage or fallback to defaults
   const [config, setConfig] = useState<IntegrationConfig>(() => {
     const defaultSettings = {
-      telegramToken: "",
-      telegramChatId: "",
-      appsScriptUrl: "",
+      telegramToken: "8973565888:AAF7oVUpCF7srTJFBARvuuquUzoQmpsh1A8",
+      telegramChatId: "5241313737",
+      appsScriptUrl: "https://script.google.com/macros/s/AKfycbw-uUzSX-pfoie7xWsBRrZwCuqu-h41FctsOfQMi6V5rKZpopCIE7IiedHdc4EfFd9DFA/exec",
       whatsappNumber: "966546679537",
-      logoUrl: "",
-      faviconUrl: "",
-      backgroundImages: undefined,
+      logoUrl: "https://vividbeauty.github.io/-VIVID-BEAUTY/logo.png",
+      faviconUrl: "https://vividbeauty.github.io/-VIVID-BEAUTY/logo.png",
+      backgroundImages: [
+        "https://vividbeauty.github.io/-VIVID-BEAUTY/bg1.jpg",
+        "https://vividbeauty.github.io/-VIVID-BEAUTY/bg2.jpg",
+        "https://vividbeauty.github.io/-VIVID-BEAUTY/bg3.jpg",
+        "https://vividbeauty.github.io/-VIVID-BEAUTY/bg4.jpg"
+      ],
       workingHoursStart: "13:00",
       workingHoursEnd: "22:00",
       googlePlaceId: "ChIJW0_QVQBXfxURqYqkcSzIp08",
@@ -99,6 +107,12 @@ export default function App() {
         return {
           ...defaultSettings,
           ...parsed,
+          telegramToken: parsed.telegramToken || defaultSettings.telegramToken,
+          telegramChatId: parsed.telegramChatId || defaultSettings.telegramChatId,
+          appsScriptUrl: parsed.appsScriptUrl || defaultSettings.appsScriptUrl,
+          logoUrl: parsed.logoUrl || defaultSettings.logoUrl,
+          faviconUrl: parsed.faviconUrl || defaultSettings.faviconUrl,
+          backgroundImages: parsed.backgroundImages && parsed.backgroundImages.length > 0 ? parsed.backgroundImages : defaultSettings.backgroundImages,
           googleApiKey: parsed.googleApiKey || defaultSettings.googleApiKey,
           googlePlaceId: loadedPlaceId
         };
@@ -132,6 +146,14 @@ export default function App() {
       setView("home");
     }
   }, [view, isAdmin]);
+
+  useEffect(() => {
+    if (config.customReviews && config.customReviews.length === 4) {
+      setReviews(config.customReviews);
+    } else {
+      setReviews(GOOGLE_REVIEWS);
+    }
+  }, [config.customReviews]);
 
   // Apply favicon dynamically on load / change
   useEffect(() => {
@@ -193,7 +215,7 @@ export default function App() {
     // Setup global auth failure hook for Google Maps JS SDK
     (window as any).gm_authFailure = () => {
       console.warn("Google Maps API auth/activation failed (ApiNotActivatedMapError). Falling back to local high-quality reviews.");
-      setReviews(GOOGLE_REVIEWS);
+      setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
     };
 
     const apiKey = config.googleApiKey;
@@ -229,16 +251,16 @@ export default function App() {
                     setReviews(formatted.slice(0, 4)); // Show top 4 newest reviews
                   } else {
                     console.warn("Google Places details status not OK or missing reviews, keeping default reviews. Status:", status);
-                    setReviews(GOOGLE_REVIEWS);
+                    setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
                   }
                 }
               );
             } catch (err) {
               console.warn("Error calling getDetails on Places Service, keeping default reviews:", err);
-              setReviews(GOOGLE_REVIEWS);
+              setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
             }
           };
-
+ 
           if (config.googlePlaceId) {
             fetchDetails(config.googlePlaceId);
           } else {
@@ -264,10 +286,10 @@ export default function App() {
           }
         } catch (err) {
           console.warn("Error initializing Google Places Service:", err);
-          setReviews(GOOGLE_REVIEWS);
+          setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
         }
       };
-
+ 
       if (!(window as any).google || !(window as any).google.maps) {
         if (!script) {
           script = document.createElement("script");
@@ -280,7 +302,7 @@ export default function App() {
           };
           script.onerror = () => {
             console.warn("Google Maps API script load failed, reverting to high-quality default reviews.");
-            setReviews(GOOGLE_REVIEWS);
+            setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
           };
           document.head.appendChild(script);
         } else {
@@ -297,7 +319,7 @@ export default function App() {
         initializePlacesService();
       }
     } else {
-      setReviews(GOOGLE_REVIEWS);
+      setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
     }
 
     return () => {
@@ -374,13 +396,13 @@ export default function App() {
             className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
             style={{
               backgroundImage: `url(${img})`,
-              opacity: index === currentSlide ? 0.65 : 0,
-              filter: "brightness(90%)"
+              opacity: index === currentSlide ? 0.75 : 0,
+              filter: "brightness(95%)"
             }}
           />
         ))}
         {/* Luxury dark stone glass overlay */}
-        <div className="absolute inset-0 bg-stone-950/45 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-stone-950/20 mix-blend-multiply" />
       </div>
 
       {/* 2. Giant Luxury Monogram SVG in Background */}
@@ -616,15 +638,19 @@ export default function App() {
                 </a>
 
                 <a 
-                  href="https://www.snapchat.com/add/vividbeautysa" 
+                  href={config.snapchatUrl || "https://www.snapchat.com/add/vividbeautysa"} 
                   target="_blank" 
                   rel="noreferrer"
                   className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.3s]"
                   title="سناب شات"
                 >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 16 16">
-                    <path d="M8 0c-2.43 0-3.937 1.705-3.937 3.66 0 1.187.556 1.98.873 2.368.117.143.143.292.063.454-.117.227-.384.856-1.031.97-.27.047-.454.232-.454.516 0 .34.273.578.604.578.196 0 .432-.083.633-.232.196-.14.413-.253.676-.253.186 0 .33.08.434.232a4.28 4.28 0 0 0 1.229 1.21c.103.064.155.163.155.28a1.41 1.41 0 0 1-1.42 1.328c-.5 0-.91-.413-.91-.91v-.083c0-.186-.155-.34-.34-.34s-.34.154-.34.34v.083c0 .88.718 1.592 1.592 1.592.594 0 1.11-.326 1.38-.802.27.476.784.802 1.378.802.875 0 1.592-.712 1.592-1.592v-.083c0-.186-.155-.34-.34-.34s-.34.154-.34.34v.083c0 .496-.413.91-.91.91a1.41 1.41 0 0 1-1.42-1.328c0-.117.052-.216.155-.28.734-.476 1.152-.832 1.229-1.21.103-.153.248-.232.434-.232.263 0 .48.113.676.253.2.149.437.232.633.232.33 0 .604-.237.604-.578 0-.284-.186-.47-.454-.516-.646-.114-.913-.743-1.031-.97-.08-.162-.054-.31.063-.454.317-.387.873-1.18.873-2.368C11.938 1.705 10.43 0 8 0z" />
-                  </svg>
+                  {config.snapchatIconUrl ? (
+                    <img src={config.snapchatIconUrl} alt="Snapchat" className="w-5 h-5 object-contain rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.002 2.22c-3.132 0-5.467 2.193-5.467 4.71 0 1.531.717 2.551 1.127 3.05.15.181.181.38.081.58-.15.29-.49 1.101-.1 1.101.38 0 1.041-.33 1.041-.33.08-.05.18-.08.271-.08.25-.01.44.17.44.42 0 .04-.01.08-.02.12-.13.23-.39.86-1.031.97-.27.05-.45.24-.45.52 0 .34.27.58.6.58.2 0 .43-.08.63-.23.2-.14.42-.25.68-.25.19 0 .33.08.43.23.47.73.91 1.08 1.23 1.21.1.06.16.16.16.28 0 .5-.41.91-.91.91H9.86v.08c0 .19-.15.34-.34.34s-.34-.15-.34-.34v-.08a1.59 1.59 0 0 1 1.59-1.59c.59 0 1.11.33 1.38.8.27-.47.78-.8 1.38-.8.87 0 1.59.71 1.59 1.59v.08c0 .19-.15.34-.34.34s-.34-.15-.34-.34v-.08h-1.05c-.5 0-.91-.41-.91-.91 0-.12.06-.22.16-.28.32-.13.76-.48 1.23-1.21.1-.15.24-.23.43-.23.26 0 .48.11.68.25.2.15.43.23.63.23.33 0 .6-.24.6-.58 0-.28-.18-.47-.45-.52-.641-.11-.901-.74-.1-.1l-.1-.1-.1-.1a1.2 1.2 0 0 1-.2-.2c.39 0 1.05.33 1.05.33.39 0 .05-.811-.1-1.101-.1-.2-.069-.399.081-.58.41-.499 1.127-1.519 1.127-3.05 0-2.517-2.335-4.71-5.467-4.71z" />
+                    </svg>
+                  )}
                 </a>
 
                 <a 
@@ -644,8 +670,15 @@ export default function App() {
                   target="_blank" 
                   rel="noreferrer"
                   className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.9s]"
+                  title="واتساب"
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  {config.whatsappIconUrl ? (
+                    <img src={config.whatsappIconUrl} alt="WhatsApp" className="w-5 h-5 object-contain rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.763.46 3.48 1.33 4.988L1.913 22l5.301-1.39A9.914 9.914 0 0 0 12.004 22c5.52 0 10-4.48 10-10.004C22.004 6.48 17.524 2 12.004 2zm5.787 14.41c-.253.712-1.258 1.309-1.745 1.385-.432.067-.992.112-2.991-.715-2.557-1.054-4.204-3.651-4.331-3.82-.127-.169-.974-1.294-.974-2.469 0-1.175.614-1.753.834-1.99.219-.239.48-.299.64-.299.16 0 .32.001.458.007.147.006.347-.056.543.414.202.484.693 1.688.752 1.81.06.12.1.26.018.421-.08.16-.12.26-.24.4-.12.14-.25.31-.358.414-.12.119-.247.248-.107.489.141.241.625 1.025 1.341 1.66.924.819 1.701 1.074 1.942 1.194.242.12.383.101.523-.06.14-.161.6-.701.761-.939.16-.239.321-.2.541-.12.219.08 1.396.657 1.637.777.24.12.4.18.458.28.058.1.058.58-.195 1.292z" />
+                    </svg>
+                  )}
                 </a>
 
                 <a 
@@ -693,8 +726,8 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center gap-3 pt-3 border-t border-amber-200/5">
-                      <div className="w-8 h-8 rounded-full border border-amber-200/20 overflow-hidden bg-stone-950">
-                        <img src={r.avatar} alt={r.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <div className="w-8 h-8 rounded-full border border-amber-200/20 flex items-center justify-center bg-stone-950 text-amber-200">
+                        <User className="w-4.5 h-4.5 text-amber-200/70" />
                       </div>
                       <div>
                         <h4 className="text-xs font-bold text-amber-100">{r.name}</h4>
@@ -708,7 +741,7 @@ export default function App() {
               {/* Rate Us CTA */}
               <div className="text-center pt-2">
                 <a
-                  href="https://maps.app.goo.gl/3H9jQ4Ditvi1mBS87"
+                  href={`https://search.google.com/local/writereview?placeid=${config.googlePlaceId || "ChIJW0_QVQBXfxURqYqkcSzIp08"}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-amber-200/10 to-amber-200/5 hover:from-amber-200 hover:to-amber-100 border border-amber-200/20 hover:border-amber-200 text-amber-100 hover:text-stone-950 text-xs font-bold rounded-2xl transition duration-200 shadow-md cursor-pointer transform hover:scale-[1.02]"
@@ -723,7 +756,7 @@ export default function App() {
             <div className="space-y-4 max-w-xl mx-auto pt-10">
               <div className="flex items-center justify-center gap-2 text-stone-300 text-sm font-semibold">
                 <MapPin className="w-4 h-4 text-amber-250" />
-                <span>موقعنا: القصيم - بريدة | حي الربوة</span>
+                <span>العنوان: 3761 ابن جمعة، حي النهضة، بريدة 52211</span>
               </div>
               <div className="rounded-[32px] overflow-hidden border border-amber-200/15 shadow-2xl bg-stone-900/90 p-2">
                 <iframe 
@@ -898,6 +931,11 @@ export default function App() {
               onSuccess={() => {
                 // Keep selections intact so receipt can read it, but don't force reset unless desired
               }}
+              hasAgreedPrivacy={hasAgreedPrivacy}
+              setHasAgreedPrivacy={setHasAgreedPrivacy}
+              hasOpenedPrivacy={hasOpenedPrivacy}
+              setHasOpenedPrivacy={setHasOpenedPrivacy}
+              onOpenPrivacy={() => setPrivacyOpen(true)}
             />
           </div>
         )}
@@ -1061,7 +1099,11 @@ export default function App() {
 
             <div className="pt-4 border-t border-amber-200/10">
               <button
-                onClick={() => setPrivacyOpen(false)}
+                onClick={() => {
+                  setPrivacyOpen(false);
+                  setHasOpenedPrivacy(true);
+                  setHasAgreedPrivacy(true);
+                }}
                 className="w-full py-3 rounded-xl bg-amber-200 hover:bg-amber-300 text-stone-950 font-bold text-xs md:text-sm transition cursor-pointer shadow-md"
               >
                 لقد فهمت وأوافق على السياسة

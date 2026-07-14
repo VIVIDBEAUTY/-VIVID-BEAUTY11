@@ -20,6 +20,13 @@ export interface BookingDetails {
   totalPrice: number;
 }
 
+export interface ReviewItem {
+  id: number;
+  name: string;
+  text: string;
+  date: string;
+}
+
 export interface IntegrationConfig {
   telegramToken: string;
   telegramChatId: string;
@@ -32,4 +39,8 @@ export interface IntegrationConfig {
   workingHoursEnd?: string;
   googlePlaceId?: string;
   googleApiKey?: string;
+  snapchatUrl?: string;
+  snapchatIconUrl?: string;
+  whatsappIconUrl?: string;
+  customReviews?: ReviewItem[];
 }

@@ -1,0 +1,6 @@
+{
+  "name": "Vivid Beauty Salon",
+  "description": "نظام حجز تفاعلي فاخر ومتكامل لصالون ڤيڤيد بيوتي مع ربط مباشر ببوت تلجرام وجداول بيانات جوجل",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

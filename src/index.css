@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
+    background-color: #2b2722;
+    overflow-x: hidden;
+    color: #f1dcb8;
+    direction: rtl;
+  }
+}
+
+/* Custom scrollbar for beautiful luxury feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1c1916;
+}
+::-webkit-scrollbar-thumb {
+  background: #b79d7e;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D9C7A5;
+}
+
+/* Pulse animation for social icons */
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.9;
+  }
+}
+
+.pulse-icon {
+  animation: pulseIcon 1.8s infinite ease-in-out;
+}
+
+/* Magical Flying Animation Keyframes */
+@keyframes flyToCart {
+  0% {
+    transform: translate(var(--start-x), var(--start-y)) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(calc(var(--start-x) - 30px), calc(var(--start-y) - 50px)) scale(1.1) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(24px, 24px) scale(0.1) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+.animate-fly {
+  animation: flyToCart 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Thin scrollbar for lists */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(183, 157, 126, 0.4);
+  border-radius: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 199, 165, 0.8);
+}
+

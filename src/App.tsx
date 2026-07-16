@@ -1150,59 +1150,59 @@ export default function App() {
 
       {/* 8. Luxury Privacy Policy Modal Dialog */}
       {privacyOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md animate-fadeIn">
-          <div className="bg-stone-900 border border-amber-200/15 rounded-[32px] max-w-lg w-full p-6 md:p-8 space-y-6 relative shadow-2xl text-right font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-stone-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-stone-900 border border-amber-200/15 rounded-3xl max-w-sm w-full p-5 space-y-4 relative shadow-2xl text-right font-sans">
             {hasAgreedPrivacy && (
               <button 
                 onClick={() => setPrivacyOpen(false)}
-                className="absolute top-5 left-5 text-stone-400 hover:text-amber-200 transition cursor-pointer"
+                className="absolute top-4 left-4 text-stone-400 hover:text-amber-200 transition cursor-pointer"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             )}
 
-            <div className="space-y-2 border-b border-amber-200/10 pb-4">
-              <div className="bg-amber-200/10 w-12 h-12 rounded-2xl flex items-center justify-center border border-amber-200/20">
-                <HelpCircle className="w-6 h-6 text-amber-200" />
+            <div className="space-y-1.5 border-b border-amber-200/10 pb-3">
+              <div className="bg-amber-200/10 w-10 h-10 rounded-xl flex items-center justify-center border border-amber-200/20 mb-3">
+                <HelpCircle className="w-5 h-5 text-amber-200" />
               </div>
-              <h3 className="text-xl font-extrabold text-amber-100 pt-2">سياسة الخصوصية وسرية البيانات</h3>
-              <p className="text-xs text-stone-400">صالون ڤيڤيد بيوتي - القصيم، بريدة</p>
+              <h3 className="text-lg font-bold text-amber-100">سياسة الخصوصية</h3>
+              <p className="text-[10px] text-stone-400">صالون ڤيڤيد بيوتي - القصيم، بريدة</p>
             </div>
 
-            <div className="space-y-4 text-xs md:text-sm text-stone-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin">
+            <div className="space-y-3 text-[11px] md:text-xs text-stone-300 leading-relaxed max-h-[45vh] overflow-y-auto pr-1 scrollbar-thin">
               <p className="font-semibold text-amber-200/95">خصوصيتكِ وراحتكِ هما أولويتنا القصوى.</p>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h4 className="font-bold text-amber-100">• جمع واستخدام المعلومات:</h4>
                 <p>نقوم بجمع اسمكِ الكريم ورقم جوالكِ فقط لغرض تنظيم الحجز والتحقق من الموعد والتواصل الآمن معكِ عبر الواتساب لتأكيد الاستقبال.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h4 className="font-bold text-amber-100">• سرية البيانات التامة:</h4>
                 <p>نلتزم التزاماً مطلقاً بسرية بياناتكِ وعدم مشاركتها أو بيعها أو الكشف عنها لأي جهة خارجية أو أطراف أخرى تحت أي ظرف من الظروف.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h4 className="font-bold text-amber-100">• إشعار الحجز التلقائي:</h4>
                 <p>عند إرسالكِ لطلب الموعد، يتم إرسال الإشعار وتفاصيل حجزكِ من خلال بروتوكول مشفر آمن إلى نظام إدارة الصالون لضمان السرعة والدقة.</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h4 className="font-bold text-amber-100">• حقوقكِ الكاملة:</h4>
                 <p>يحق لكِ في أي وقت تعديل حجزكِ، إلغاء الموعد، أو طلب حذف بياناتكِ المسجلة لدينا بالتواصل المباشر مع إدارة صالون ڤيڤيد بيوتي.</p>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-amber-200/10">
+            <div className="pt-3 border-t border-amber-200/10">
               <button
                 onClick={() => {
                   setHasAgreedPrivacy(true);
                   localStorage.setItem("vivid_privacy_agreed", "true");
                   setPrivacyOpen(false);
                 }}
-                className="w-full py-3 rounded-xl bg-amber-200 hover:bg-amber-300 text-stone-950 font-bold text-xs md:text-sm transition cursor-pointer shadow-md"
+                className="w-full py-2.5 rounded-lg bg-[#D4AF37] hover:bg-amber-400 text-stone-950 font-bold text-xs md:text-sm transition cursor-pointer shadow-md"
               >
-                لقد فهمت وأوافق على السياسة
+                موافق
               </button>
             </div>
           </div>

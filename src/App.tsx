@@ -155,19 +155,75 @@ export default function App() {
     }
   }, [config.customReviews]);
 
-  // Apply favicon dynamically on load / change
+  // Apply favicon and PWA app icon dynamically on load / change
   useEffect(() => {
-    if (config.faviconUrl) {
-      const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-      if (link) {
-        link.href = config.faviconUrl;
-      } else {
-        const newLink = document.createElement("link");
-        newLink.rel = "icon";
-        newLink.href = config.faviconUrl;
-        document.head.appendChild(newLink);
-      }
+    const iconUrl = config.faviconUrl || "https://vividbeauty.github.io/-VIVID-BEAUTY/logo.png";
+    
+    // 1. Update Favicon
+    let faviconLink: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+    if (faviconLink) {
+      faviconLink.href = iconUrl;
+    } else {
+      const newFavicon = document.createElement("link");
+      newFavicon.rel = "icon";
+      newFavicon.href = iconUrl;
+      document.head.appendChild(newFavicon);
     }
+
+    // 2. Update Apple Touch Icon (For iOS Home Screen)
+    let appleIconLink: HTMLLinkElement | null = document.querySelector("link[rel='apple-touch-icon']");
+    if (appleIconLink) {
+      appleIconLink.href = iconUrl;
+    } else {
+      const newAppleIcon = document.createElement("link");
+      newAppleIcon.rel = "apple-touch-icon";
+      newAppleIcon.href = iconUrl;
+      document.head.appendChild(newAppleIcon);
+    }
+
+    // 3. Inject PWA Web Manifest (For Android Home Screen)
+    const manifest = {
+      name: "VIVID BEAUTY | صالون ڤيڤيد بيوتي",
+      short_name: "Vivid Beauty",
+      description: "صالون ڤيڤيد بيوتي - للحجوزات",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#1c1917",
+      theme_color: "#fde68a",
+      icons: [
+        {
+          src: iconUrl,
+          sizes: "192x192",
+          type: "image/png"
+        },
+        {
+          src: iconUrl,
+          sizes: "512x512",
+          type: "image/png"
+        }
+      ]
+    };
+
+    const manifestDataUrl = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(manifest))}`;
+    let manifestLink: HTMLLinkElement | null = document.querySelector("link[rel='manifest']");
+    if (manifestLink) {
+      manifestLink.href = manifestDataUrl;
+    } else {
+      const newManifestLink = document.createElement("link");
+      newManifestLink.rel = "manifest";
+      newManifestLink.href = manifestDataUrl;
+      document.head.appendChild(newManifestLink);
+    }
+
+    // 4. Update Theme Color
+    let themeColorMeta: HTMLMetaElement | null = document.querySelector("meta[name='theme-color']");
+    if (!themeColorMeta) {
+      themeColorMeta = document.createElement("meta");
+      themeColorMeta.name = "theme-color";
+      themeColorMeta.content = "#fde68a";
+      document.head.appendChild(themeColorMeta);
+    }
+
   }, [config.faviconUrl]);
 
   // Background slideshow interval

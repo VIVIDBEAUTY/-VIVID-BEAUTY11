@@ -23,11 +23,6 @@ interface BookingFormProps {
   onRemoveService: (service: ServiceItem) => void;
   config: IntegrationConfig;
   onSuccess: () => void;
-  hasAgreedPrivacy: boolean;
-  setHasAgreedPrivacy: (val: boolean) => void;
-  hasOpenedPrivacy: boolean;
-  setHasOpenedPrivacy: (val: boolean) => void;
-  onOpenPrivacy: () => void;
 }
 
 const convertArabicToEnglishNumbers = (str: string) => {
@@ -39,12 +34,7 @@ export default function BookingForm({
   selectedServices, 
   onRemoveService, 
   config, 
-  onSuccess,
-  hasAgreedPrivacy,
-  setHasAgreedPrivacy,
-  hasOpenedPrivacy,
-  setHasOpenedPrivacy,
-  onOpenPrivacy
+  onSuccess
 }: BookingFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -162,18 +152,6 @@ export default function BookingForm({
 
     if (selectedServices.length === 0) {
       setErrorMsg("الرجاء تحديد خدمة واحدة على الأقل لإكمال الحجز");
-      return;
-    }
-
-    if (!hasOpenedPrivacy) {
-      setErrorMsg("يرجى قراءة سياسة الخصوصية بالضغط على الرابط أسفل قبل تأكيد الحجز");
-      setHasOpenedPrivacy(true);
-      onOpenPrivacy();
-      return;
-    }
-
-    if (!hasAgreedPrivacy) {
-      setErrorMsg("يجب تحديد مربع الموافقة على سياسة الخصوصية للمتابعة وتأكيد الحجز");
       return;
     }
 
@@ -569,40 +547,6 @@ export default function BookingForm({
                 <p className="text-xs text-stone-400 text-center py-2">برجاء مراجعة لوحة التحكم للتأكد من تهيئة أوقات الدوام بشكل صحيح.</p>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Privacy Policy Checkbox */}
-        <div className="bg-stone-950/45 border border-amber-200/5 rounded-2xl p-4.5 space-y-2 mt-4">
-          <div className="flex items-start gap-3">
-            <input
-              id="privacyAgreementCheckbox"
-              type="checkbox"
-              checked={hasAgreedPrivacy}
-              onChange={(e) => {
-                if (e.target.checked && !hasOpenedPrivacy) {
-                  setHasOpenedPrivacy(true);
-                  onOpenPrivacy();
-                } else {
-                  setHasAgreedPrivacy(e.target.checked);
-                }
-              }}
-              className="mt-1 w-4.5 h-4.5 text-amber-300 bg-stone-900 border-amber-200/20 rounded focus:ring-0 focus:ring-offset-0 accent-amber-200 cursor-pointer"
-            />
-            <label htmlFor="privacyAgreementCheckbox" className="text-xs text-stone-300 leading-relaxed select-none text-right">
-              أقر وأوافق على{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setHasOpenedPrivacy(true);
-                  onOpenPrivacy();
-                }}
-                className="text-amber-200 hover:text-amber-100 underline font-bold cursor-pointer inline bg-transparent p-0 border-0"
-              >
-                سياسة الخصوصية وسرية البيانات
-              </button>{" "}
-              الخاصة بصالون ڤيڤيد بيوتي لضمان سرية وأمان معلوماتي المسجلة.
-            </label>
           </div>
         </div>
 

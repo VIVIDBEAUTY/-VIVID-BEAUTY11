@@ -80,8 +80,9 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(false);
-  const [hasOpenedPrivacy, setHasOpenedPrivacy] = useState(false);
+  const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(() => {
+    return localStorage.getItem("vivid_privacy_agreed") === "true";
+  });
   const [flyingParticles, setFlyingParticles] = useState<{ id: number; x: number; y: number; label: string }[]>([]);
   const [reviews, setReviews] = useState(GOOGLE_REVIEWS);
   
@@ -103,26 +104,16 @@ export default function App() {
       workingHoursStart: "13:00",
       workingHoursEnd: "22:00",
       googlePlaceId: "ChIJW0_QVQBXfxURqYqkcSzIp08",
-      googleApiKey: "AIzaSyD0vTIaHnnQgk7h0vcWNiFBsmgxq8yAE_Y"
+      googleApiKey: "AIzaSyD0vTIaHnnQgk7h0vcWNiFBsmgxq8yAE_Y",
+      snapchatIconUrl: "https://upload.wikimedia.org/wikipedia/en/c/c4/Snapchat_logo.svg"
     };
 
     const stored = localStorage.getItem("vivid_beauty_config");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        const loadedPlaceId = parsed.googlePlaceId === "ChIJs5x_Q5pYURUR4fa7c82c71a8" ? defaultSettings.googlePlaceId : (parsed.googlePlaceId || defaultSettings.googlePlaceId);
-        return {
-          ...defaultSettings,
-          ...parsed,
-          telegramToken: parsed.telegramToken || defaultSettings.telegramToken,
-          telegramChatId: parsed.telegramChatId || defaultSettings.telegramChatId,
-          appsScriptUrl: parsed.appsScriptUrl || defaultSettings.appsScriptUrl,
-          logoUrl: parsed.logoUrl || defaultSettings.logoUrl,
-          faviconUrl: parsed.faviconUrl || defaultSettings.faviconUrl,
-          backgroundImages: parsed.backgroundImages && parsed.backgroundImages.length > 0 ? parsed.backgroundImages : defaultSettings.backgroundImages,
-          googleApiKey: parsed.googleApiKey || defaultSettings.googleApiKey,
-          googlePlaceId: loadedPlaceId
-        };
+        // Only merge if we want to, but user wants settings in code.
+        // We will just use defaultSettings as the source of truth to lock it in code.
       } catch (e) {
         console.error("Failed to parse config", e);
       }
@@ -168,6 +159,12 @@ export default function App() {
       setReviews(GOOGLE_REVIEWS);
     }
   }, [config.customReviews]);
+
+  useEffect(() => {
+    if (!hasAgreedPrivacy) {
+      setPrivacyOpen(true);
+    }
+  }, [hasAgreedPrivacy]);
 
   // Apply favicon and PWA app icon dynamically on load / change
   useEffect(() => {
@@ -401,7 +398,7 @@ export default function App() {
 
   const saveConfig = (newConfig: IntegrationConfig) => {
     setConfig(newConfig);
-    localStorage.setItem("vivid_beauty_config", JSON.stringify(newConfig));
+    // User requested to save settings in code, disabling local storage caching
   };
 
   const handleToggleService = (service: ServiceItem) => {
@@ -710,49 +707,20 @@ export default function App() {
             {/* Social Icons Vertical Panel (Centered in homepage) */}
             <div className="pt-6">
               <p className="text-xs text-amber-200/60 font-bold tracking-widest uppercase mb-4">تواصل معنا</p>
-              <div className="flex justify-center items-center gap-6">
+              <div className="flex justify-center items-center gap-6" dir="ltr">
                 <a 
-                  href="https://www.instagram.com/vividbeauty.sa" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md"
+                  href="tel:+966546679537" 
+                  className="w-12 h-12 rounded-full border border-[#D4AF37]/20 flex items-center justify-center bg-stone-900/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md"
+                  title="اتصال"
                 >
-                  <Instagram className="w-5 h-5" />
-                </a>
-
-                <a 
-                  href={config.snapchatUrl || "https://www.snapchat.com/add/vividbeautysa"} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.3s]"
-                  title="سناب شات"
-                >
-                  {config.snapchatIconUrl ? (
-                    <img src={config.snapchatIconUrl} alt="Snapchat" className="w-5 h-5 object-contain rounded-full" referrerPolicy="no-referrer" />
-                  ) : (
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                      <path d="M12.002 2.22c-3.132 0-5.467 2.193-5.467 4.71 0 1.531.717 2.551 1.127 3.05.15.181.181.38.081.58-.15.29-.49 1.101-.1 1.101.38 0 1.041-.33 1.041-.33.08-.05.18-.08.271-.08.25-.01.44.17.44.42 0 .04-.01.08-.02.12-.13.23-.39.86-1.031.97-.27.05-.45.24-.45.52 0 .34.27.58.6.58.2 0 .43-.08.63-.23.2-.14.42-.25.68-.25.19 0 .33.08.43.23.47.73.91 1.08 1.23 1.21.1.06.16.16.16.28 0 .5-.41.91-.91.91H9.86v.08c0 .19-.15.34-.34.34s-.34-.15-.34-.34v-.08a1.59 1.59 0 0 1 1.59-1.59c.59 0 1.11.33 1.38.8.27-.47.78-.8 1.38-.8.87 0 1.59.71 1.59 1.59v.08c0 .19-.15.34-.34.34s-.34-.15-.34-.34v-.08h-1.05c-.5 0-.91-.41-.91-.91 0-.12.06-.22.16-.28.32-.13.76-.48 1.23-1.21.1-.15.24-.23.43-.23.26 0 .48.11.68.25.2.15.43.23.63.23.33 0 .6-.24.6-.58 0-.28-.18-.47-.45-.52-.641-.11-.901-.74-.1-.1l-.1-.1-.1-.1a1.2 1.2 0 0 1-.2-.2c.39 0 1.05.33 1.05.33.39 0 .05-.811-.1-1.101-.1-.2-.069-.399.081-.58.41-.499 1.127-1.519 1.127-3.05 0-2.517-2.335-4.71-5.467-4.71z" />
-                    </svg>
-                  )}
-                </a>
-
-                <a 
-                  href="https://www.tiktok.com/@vividbeauty.sa" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.6s]"
-                  title="تيك توك"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.62 2.89 2.89 0 0 1 2.31-4.5 2.92 2.92 0 0 1 .6.06V9.36a6.33 6.33 0 0 0-.6-.03 6.33 6.33 0 1 0 6.33 6.33V6.82a8.27 8.27 0 0 0 4.38 1.25V4.6a4.8 4.8 0 0 1-.6-.06l-.01.15z" />
-                  </svg>
+                  <Phone className="w-5 h-5" />
                 </a>
 
                 <a 
                   href={`https://wa.me/${config.whatsappNumber}`} 
                   target="_blank" 
                   rel="noreferrer"
-                  className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.9s]"
+                  className="w-12 h-12 rounded-full border border-[#D4AF37]/20 flex items-center justify-center bg-stone-900/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.3s]"
                   title="واتساب"
                 >
                   {config.whatsappIconUrl ? (
@@ -765,10 +733,41 @@ export default function App() {
                 </a>
 
                 <a 
-                  href="tel:+966546679537" 
-                  className="w-12 h-12 rounded-full border border-amber-200/10 flex items-center justify-center bg-stone-900/60 text-amber-100 hover:bg-amber-200 hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:1.2s]"
+                  href="https://www.tiktok.com/@vividbeauty.sa" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="w-12 h-12 rounded-full border border-[#D4AF37]/20 flex items-center justify-center bg-stone-900/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.6s]"
+                  title="تيك توك"
                 >
-                  <Phone className="w-5 h-5" />
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.62 2.89 2.89 0 0 1 2.31-4.5 2.92 2.92 0 0 1 .6.06V9.36a6.33 6.33 0 0 0-.6-.03 6.33 6.33 0 1 0 6.33 6.33V6.82a8.27 8.27 0 0 0 4.38 1.25V4.6a4.8 4.8 0 0 1-.6-.06l-.01.15z" />
+                  </svg>
+                </a>
+
+                <a 
+                  href={config.snapchatUrl || "https://www.snapchat.com/add/vividbeautysa"} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="w-12 h-12 rounded-full border border-[#D4AF37]/20 flex items-center justify-center bg-stone-900/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:0.9s]"
+                  title="سناب شات"
+                >
+                  {config.snapchatIconUrl ? (
+                    <img src={config.snapchatIconUrl} alt="Snapchat" className="w-5 h-5 object-contain rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-1.107-.435-1.257-.93-1.197-1.273.09-.479.674-.793 1.168-.793.146 0 .27.029.383.074.42.194.789.3 1.104.3.234 0 .384-.06.465-.105l-.046-.569c-.098-1.626-.225-3.651.307-4.837C7.392 1.077 10.739.807 11.727.807l.419-.015h.06z" />
+                    </svg>
+                  )}
+                </a>
+
+                <a 
+                  href="https://www.instagram.com/vividbeauty.sa" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="w-12 h-12 rounded-full border border-[#D4AF37]/20 flex items-center justify-center bg-stone-900/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-stone-950 hover:scale-115 transition-all pulse-icon shadow-md [animation-delay:1.2s]"
+                  title="انستقرام"
+                >
+                  <Instagram className="w-5 h-5" />
                 </a>
               </div>
             </div>
@@ -1014,11 +1013,6 @@ export default function App() {
               onSuccess={() => {
                 // Keep selections intact so receipt can read it, but don't force reset unless desired
               }}
-              hasAgreedPrivacy={hasAgreedPrivacy}
-              setHasAgreedPrivacy={setHasAgreedPrivacy}
-              hasOpenedPrivacy={hasOpenedPrivacy}
-              setHasOpenedPrivacy={setHasOpenedPrivacy}
-              onOpenPrivacy={() => setPrivacyOpen(true)}
             />
           </div>
         )}
@@ -1158,12 +1152,14 @@ export default function App() {
       {privacyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-md animate-fadeIn">
           <div className="bg-stone-900 border border-amber-200/15 rounded-[32px] max-w-lg w-full p-6 md:p-8 space-y-6 relative shadow-2xl text-right font-sans">
-            <button 
-              onClick={() => setPrivacyOpen(false)}
-              className="absolute top-5 left-5 text-stone-400 hover:text-amber-200 transition cursor-pointer"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            {hasAgreedPrivacy && (
+              <button 
+                onClick={() => setPrivacyOpen(false)}
+                className="absolute top-5 left-5 text-stone-400 hover:text-amber-200 transition cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            )}
 
             <div className="space-y-2 border-b border-amber-200/10 pb-4">
               <div className="bg-amber-200/10 w-12 h-12 rounded-2xl flex items-center justify-center border border-amber-200/20">
@@ -1200,9 +1196,9 @@ export default function App() {
             <div className="pt-4 border-t border-amber-200/10">
               <button
                 onClick={() => {
-                  setPrivacyOpen(false);
-                  setHasOpenedPrivacy(true);
                   setHasAgreedPrivacy(true);
+                  localStorage.setItem("vivid_privacy_agreed", "true");
+                  setPrivacyOpen(false);
                 }}
                 className="w-full py-3 rounded-xl bg-amber-200 hover:bg-amber-300 text-stone-950 font-bold text-xs md:text-sm transition cursor-pointer shadow-md"
               >

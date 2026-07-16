@@ -1,0 +1,31 @@
+{
+  "project_id": "vivid-beauty",
+  "collections": [
+    {
+      "name": "users",
+      "document_id": "user_id_from_auth",
+      "fields": {
+        "phone": "string",
+        "name": "string",
+        "createdAt": "timestamp"
+      },
+      "description": "Stores customer profile information."
+    },
+    {
+      "name": "appointments",
+      "document_id": "auto_generated",
+      "fields": {
+        "userId": "string",
+        "customerName": "string",
+        "customerPhone": "string",
+        "date": "string",
+        "time": "string",
+        "services": "array",
+        "totalPrice": "number",
+        "status": "string",
+        "createdAt": "timestamp"
+      },
+      "description": "Stores appointment bookings."
+    }
+  ]
+}

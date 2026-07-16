@@ -3,7 +3,12 @@ import { ServiceItem, IntegrationConfig } from "./types";
 import { SERVICES_DATA } from "./data/servicesData";
 import BookingForm from "./components/BookingForm";
 import IntegrationSettings from "./components/IntegrationSettings";
+import ViviBot from "./components/ViviBot";
 import DocGuide from "./components/DocGuide";
+import Login from "./components/Login";
+import Profile from "./components/Profile";
+import { auth } from "./lib/firebase";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { 
   Instagram, 
   Phone, 
@@ -68,7 +73,9 @@ const SLIDESHOW_IMAGES = [
 
 export default function App() {
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
-  const [view, setView] = useState<"home" | "services" | "booking" | "settings" | "guide">("home");
+  const [view, setView] = useState<"home" | "services" | "booking" | "settings" | "guide" | "profile">("home");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -146,6 +153,13 @@ export default function App() {
       setView("home");
     }
   }, [view, isAdmin]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (config.customReviews && config.customReviews.length === 4) {
@@ -546,6 +560,19 @@ export default function App() {
             <Menu className="w-6 h-6" />
           </button>
 
+          {/* User Account / Login */}
+          <button
+            onClick={() => currentUser ? setView("profile") : setShowLoginModal(true)}
+            className={`relative p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+              view === "profile"
+                ? "bg-amber-200/20 text-amber-200 border-amber-200"
+                : "bg-stone-900/60 text-stone-300 border-amber-200/10 hover:text-amber-200 hover:border-amber-200/30"
+            }`}
+            title="حسابي"
+          >
+            <User className="w-4.5 h-4.5" />
+          </button>
+
           {/* Elegant Cart Button - Always visible on top-left for both mobile and desktop */}
           <button
             onClick={() => {
@@ -809,7 +836,7 @@ export default function App() {
             </div>
 
             {/* Map Container */}
-            <div className="space-y-4 max-w-xl mx-auto pt-10">
+            <div id="location-section" className="space-y-4 max-w-xl mx-auto pt-10">
               <div className="flex items-center justify-center gap-2 text-stone-300 text-sm font-semibold">
                 <MapPin className="w-4 h-4 text-amber-250" />
                 <span>العنوان: 3761 ابن جمعة، حي النهضة، بريدة 52211</span>
@@ -1035,6 +1062,23 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW: PROFILE */}
+        {view === "profile" && (
+          <div className="space-y-6">
+            <div className="max-w-4xl mx-auto flex items-center justify-between border-b border-amber-200/10 pb-3 mb-6">
+              <h2 className="text-xl font-bold text-stone-100">الملف الشخصي</h2>
+              <button
+                onClick={() => setView("home")}
+                className="text-xs text-amber-200 hover:text-amber-100 transition flex items-center gap-1 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>العودة للرئيسية</span>
+              </button>
+            </div>
+            <Profile onBack={() => setView("home")} />
+          </div>
+        )}
+
       </main>
 
       {/* 5. Persistent Floating Cart Panel (Fixed at the absolute bottom when services are selected) */}
@@ -1066,7 +1110,7 @@ export default function App() {
               onClick={() => setView("booking")}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-100 hover:from-amber-400 hover:to-amber-200 text-stone-950 font-bold text-xs sm:text-sm transition transform hover:scale-[1.03] active:scale-[0.97] cursor-pointer shadow-lg shadow-amber-950/40"
             >
-              احجزي الآن ⬅️
+              احجزي الآن
             </button>
           </div>
         </div>
@@ -1167,6 +1211,28 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Vivi AI Bot */}
+      <ViviBot 
+        hidden={selectedServices.length > 0 || view === 'booking'}
+        config={{
+          whatsappNumber: config.whatsappNumber,
+          address: "حي النهضة، بريدة",
+          workingHours: `${config.workingHoursStart || "13:00"} إلى ${config.workingHoursEnd || "22:00"}`
+        }} 
+        onNavigate={setView}
+      />
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <Login 
+          onClose={() => setShowLoginModal(false)} 
+          onSuccess={() => {
+            setShowLoginModal(false);
+            setView("profile");
+          }} 
+        />
       )}
     </div>
   );

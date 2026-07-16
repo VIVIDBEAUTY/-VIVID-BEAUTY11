@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ServiceItem, IntegrationConfig } from "../types";
+import { auth, db } from "../lib/firebase";
+import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { 
   Calendar, 
   Phone, 
@@ -28,6 +30,11 @@ interface BookingFormProps {
   onOpenPrivacy: () => void;
 }
 
+const convertArabicToEnglishNumbers = (str: string) => {
+  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return str.replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
+};
+
 export default function BookingForm({ 
   selectedServices, 
   onRemoveService, 
@@ -46,7 +53,20 @@ export default function BookingForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  
+  const user = auth.currentUser;
+
+  useEffect(() => {
+    if (user) {
+      getDoc(doc(db, "users", user.uid)).then(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.name) setName(data.name);
+          if (data.phone) setPhone(data.phone);
+        }
+      }).catch(console.error);
+    }
+  }, [user]);
+
   // Calculate total price
   const totalPrice = selectedServices.reduce((sum, item) => sum + item.price, 0);
 
@@ -178,6 +198,25 @@ export default function BookingForm({
     };
 
     try {
+      // 0. Save to Firebase Firestore
+      await addDoc(collection(db, "appointments"), {
+        userId: user ? user.uid : null,
+        customerName: name,
+        customerPhone: formattedPhone,
+        date,
+        time,
+        services: selectedServices,
+        totalPrice,
+        status: "upcoming",
+        createdAt: new Date().toISOString()
+      });
+
+      // Update user name if they are logged in and it was empty/changed
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, { name: name, phone: formattedPhone }).catch(() => {});
+      }
+
       let isSent = false;
 
       // 1. If Google Apps Script Webhook is configured, send to it
@@ -454,7 +493,7 @@ export default function BookingForm({
               type="tel"
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(convertArabicToEnglishNumbers(e.target.value))}
               placeholder="مثال: 0512345678"
               className="w-full text-sm bg-stone-950/60 border border-amber-200/10 rounded-xl px-3 py-2.5 text-stone-100 font-mono focus:border-amber-300 focus:outline-none placeholder-stone-600 text-right"
               dir="ltr"

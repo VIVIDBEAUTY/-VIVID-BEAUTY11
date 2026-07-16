@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /appointments/{appointmentId} {
+      // Allow users to read their own appointments
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow creation of appointments if the user is writing their own ID, or if unauthenticated (guest booking)
+      // Allow anyone to create an appointment (guest booking allowed)
+      allow create: if true;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}

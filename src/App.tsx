@@ -30,7 +30,9 @@ import {
   Star,
   Heart,
   ShoppingBag,
-  User
+  User,
+  Lock,
+  ExternalLink
 } from "lucide-react";
 
 const GOOGLE_REVIEWS = [
@@ -1230,6 +1232,54 @@ export default function App() {
           }} 
         />
       )}
+
+      {/* Luxury Suspend/Blur Overlay Screen */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 bg-stone-950/85 backdrop-blur-3xl animate-fadeIn select-text">
+        {/* Glow Effects */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-[#D4AF37]/10 blur-[120px] pointer-events-none" />
+        
+        <div className="bg-stone-900/90 border border-[#D4AF37]/20 rounded-[32px] max-w-md w-full p-6 md:p-8 space-y-6 relative shadow-2xl text-center font-sans">
+          
+          {/* Subtle elegant gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#D4AF37]/5 via-transparent to-transparent rounded-[32px] pointer-events-none" />
+
+          {/* Golden Badge Header */}
+          <div className="flex flex-col items-center space-y-3">
+            <div className="bg-[#D4AF37]/10 w-16 h-16 rounded-full flex items-center justify-center border border-[#D4AF37]/25 shadow-inner">
+              <Lock className="w-8 h-8 text-[#D4AF37] animate-pulse" />
+            </div>
+            <span className="text-[10px] uppercase tracking-widest text-[#D4AF37]/80 font-bold">إشعار من النظام</span>
+          </div>
+
+          {/* Title and message */}
+          <div className="space-y-3">
+            <h2 className="text-xl md:text-2xl font-black text-amber-100 leading-snug">
+              الخدمات معلقة مؤقتاً
+            </h2>
+            <p className="text-xs md:text-sm text-stone-300 leading-relaxed text-center px-2">
+              عذراً عميلنا الكريم، تم تعليق خدمات الحجز الإلكتروني والمنصة مؤقتاً. للاستفادة من كافة الخدمات البرمجية وحجز المواعيد بشكل كامل، يرجى مراجعة الشركة المطورة والمزودة للخدمة.
+            </p>
+          </div>
+
+          {/* Dynamic Interactive Button */}
+          <div className="pt-4 border-t border-amber-200/10">
+            <a 
+              href="https://luxcod.online" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-amber-500 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2.5 shadow-lg shadow-[#D4AF37]/15 hover:shadow-[#D4AF37]/25 hover:scale-[1.02] cursor-pointer"
+            >
+              <span>مراجعة الشركة المطورة LuxCod</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
+          {/* Professional Footer */}
+          <p className="text-[10px] text-stone-500 font-medium">
+            جميع حقوق البرمجة والتطوير محفوظة لدى LuxCod © {new Date().getFullYear()}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

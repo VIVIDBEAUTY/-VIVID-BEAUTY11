@@ -282,152 +282,40 @@ export default function App() {
     return () => clearInterval(interval);
   }, [config.backgroundImages]);
 
-  // Fetch real Google Reviews if configured using Google Maps Javascript SDK to bypass CORS
+  // Fetch real Google Reviews via backend proxy to bypass CORS
   useEffect(() => {
-    // Intercept Google Maps errors globally to prevent tests or runtime crashes from being flagged
-    const originalConsoleError = console.error;
-    console.error = function (...args: any[]) {
-      const msg = args.join(" ");
-      if (
-        msg.includes("ApiNotActivatedMapError") ||
-        msg.includes("Google Maps JavaScript API error") ||
-        msg.includes("Google Maps API error") ||
-        msg.includes("gm_authFailure")
-      ) {
-        console.warn("[Google Maps API Suppressed Error]:", ...args);
+    const fetchReviews = async () => {
+      const apiKey = config.googleApiKey;
+      const placeId = config.googlePlaceId || "ChIJW0_QVQBXfxURqYqkcSzIp08";
+      
+      if (!apiKey) {
+        setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
         return;
       }
-      originalConsoleError.apply(console, args);
-    };
 
-    const handleGlobalError = (event: ErrorEvent) => {
-      const msg = event.message || "";
-      if (
-        msg.includes("ApiNotActivatedMapError") ||
-        msg.includes("Google Maps") ||
-        msg.includes("gm_authFailure")
-      ) {
-        event.preventDefault();
-        console.warn("[Google Maps API Uncaught Suppressed]:", msg);
-      }
-    };
-    window.addEventListener("error", handleGlobalError);
-
-    // Setup global auth failure hook for Google Maps JS SDK
-    (window as any).gm_authFailure = () => {
-      console.warn("Google Maps API auth/activation failed (ApiNotActivatedMapError). Falling back to local high-quality reviews.");
-      setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
-    };
-
-    const apiKey = config.googleApiKey;
-    if (apiKey) {
-      const scriptId = "google-maps-places-script";
-      let script = document.getElementById(scriptId) as HTMLScriptElement;
-      
-      const initializePlacesService = () => {
-        try {
-          const dummy = document.createElement("div");
-          const service = new (window as any).google.maps.places.PlacesService(dummy);
-          
-          const fetchDetails = (targetPlaceId: string) => {
-            try {
-              service.getDetails(
-                {
-                  placeId: targetPlaceId,
-                  fields: ["reviews"],
-                },
-                (place: any, status: any) => {
-                  if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && place && place.reviews) {
-                    // Only take reviews with content (some might be empty rating-only)
-                    const withText = place.reviews.filter((r: any) => r.text && r.text.trim().length > 0);
-                    const sourceReviews = withText.length > 0 ? withText : place.reviews;
-                    
-                    const formatted = sourceReviews.map((r: any, idx: number) => ({
-                      id: idx + 100,
-                      name: r.author_name,
-                      text: r.text,
-                      date: r.relative_time_description || "مؤخراً",
-                      avatar: r.profile_photo_url || `https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100`
-                    }));
-                    setReviews(formatted.slice(0, 4)); // Show top 4 newest reviews
-                  } else {
-                    console.warn("Google Places details status not OK or missing reviews, keeping default reviews. Status:", status);
-                    setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
-                  }
-                }
-              );
-            } catch (err) {
-              console.warn("Error calling getDetails on Places Service, keeping default reviews:", err);
-              setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
-            }
-          };
- 
-          if (config.googlePlaceId) {
-            fetchDetails(config.googlePlaceId);
-          } else {
-            // Automatically resolve Place ID if missing using findPlaceFromQuery
-            try {
-              service.findPlaceFromQuery(
-                {
-                  query: "صالون ڤيڤيد بيوتي بريدة VIVID BEAUTY",
-                  fields: ["place_id"],
-                },
-                (results: any, status: any) => {
-                  if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
-                    fetchDetails(results[0].place_id);
-                  } else {
-                    fetchDetails("ChIJs5x_Q5pYURUR4fa7c82c71a8");
-                  }
-                }
-              );
-            } catch (err) {
-              console.warn("Error finding place from query, trying default place ID:", err);
-              fetchDetails("ChIJs5x_Q5pYURUR4fa7c82c71a8");
-            }
-          }
-        } catch (err) {
-          console.warn("Error initializing Google Places Service:", err);
+      try {
+        const res = await fetch(`/api/reviews?placeId=${placeId}&apiKey=${apiKey}`);
+        const data = await res.json();
+        
+        if (res.ok && data.reviews) {
+          const formatted = data.reviews.map((r: any, idx: number) => ({
+            id: idx + 100,
+            name: r.author_name,
+            text: r.text,
+            date: r.relative_time_description || "مؤخراً",
+            avatar: r.profile_photo_url || `https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100`
+          }));
+          setReviews(formatted);
+        } else {
           setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
         }
-      };
- 
-      if (!(window as any).google || !(window as any).google.maps) {
-        if (!script) {
-          script = document.createElement("script");
-          script.id = scriptId;
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar`;
-          script.async = true;
-          script.defer = true;
-          script.onload = () => {
-            initializePlacesService();
-          };
-          script.onerror = () => {
-            console.warn("Google Maps API script load failed, reverting to high-quality default reviews.");
-            setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
-          };
-          document.head.appendChild(script);
-        } else {
-          const checkInterval = setInterval(() => {
-            if ((window as any).google && (window as any).google.maps && (window as any).google.maps.places) {
-              clearInterval(checkInterval);
-              initializePlacesService();
-            }
-          }, 100);
-          // Safety timeout
-          setTimeout(() => clearInterval(checkInterval), 5000);
-        }
-      } else {
-        initializePlacesService();
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
       }
-    } else {
-      setReviews(config.customReviews && config.customReviews.length === 4 ? config.customReviews : GOOGLE_REVIEWS);
-    }
-
-    return () => {
-      // Cleanup global listeners to keep environment pristine
-      console.error = originalConsoleError;
-      window.removeEventListener("error", handleGlobalError);
     };
+
+    fetchReviews();
   }, [config.googlePlaceId, config.googleApiKey]);
 
   const saveConfig = (newConfig: IntegrationConfig) => {
@@ -818,40 +706,47 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Reviews Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
-                {reviews.map((r) => (
-                  <div 
-                    key={r.id} 
-                    className="bg-stone-900/80 border border-amber-200/10 hover:border-amber-200/30 rounded-3xl p-5 space-y-3.5 transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
-                  >
-                    <div className="absolute top-4 left-4 text-amber-200/5 select-none font-serif text-6xl font-black leading-none">
-                      ”
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {/* Stars Row */}
-                      <div className="flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="w-4 h-4 fill-amber-200 text-amber-200" />
-                        ))}
+              {/* Reviews Marquee */}
+              <div className="relative flex overflow-hidden w-full py-2" dir="ltr">
+                <div className="flex gap-4 animate-marquee-left w-max cursor-default">
+                  {[...reviews, ...reviews, ...reviews].map((r, i) => (
+                    <div 
+                      key={`${r.id}-${i}`} 
+                      dir="rtl"
+                      className="bg-stone-900/80 border border-amber-200/10 hover:border-amber-200/30 rounded-3xl p-5 space-y-3.5 transition-all duration-300 relative overflow-hidden flex flex-col justify-between shrink-0 w-[280px] sm:w-[320px]"
+                    >
+                      <div className="absolute top-4 left-4 text-amber-200/5 select-none font-serif text-6xl font-black leading-none">
+                        ”
                       </div>
-                      <p className="text-stone-200 text-xs md:text-sm leading-relaxed font-medium">
-                        {r.text}
-                      </p>
-                    </div>
+                      
+                      <div className="space-y-2">
+                        {/* Stars Row */}
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} className="w-4 h-4 fill-amber-200 text-amber-200" />
+                          ))}
+                        </div>
+                        <p className="text-stone-200 text-xs md:text-sm leading-relaxed font-medium line-clamp-5">
+                          {r.text}
+                        </p>
+                      </div>
 
-                    <div className="flex items-center gap-3 pt-3 border-t border-amber-200/5">
-                      <div className="w-8 h-8 rounded-full border border-amber-200/20 flex items-center justify-center bg-stone-950 text-amber-200">
-                        <User className="w-4.5 h-4.5 text-amber-200/70" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-amber-100">{r.name}</h4>
-                        <span className="text-[10px] text-stone-450">{r.date}</span>
+                      <div className="flex items-center gap-3 pt-3 border-t border-amber-200/5 mt-auto">
+                        <div className="w-10 h-10 rounded-full border border-amber-200/20 flex items-center justify-center bg-stone-950 text-amber-200 overflow-hidden shrink-0">
+                          {r.avatar ? (
+                            <img src={r.avatar} alt={r.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <User className="w-5 h-5 text-amber-200/70" />
+                          )}
+                        </div>
+                        <div className="overflow-hidden">
+                          <h4 className="text-xs font-bold text-amber-100 truncate">{r.name}</h4>
+                          <span className="text-[10px] text-stone-450">{r.date}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               {/* Rate Us CTA */}

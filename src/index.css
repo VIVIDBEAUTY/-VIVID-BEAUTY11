@@ -75,3 +75,12 @@
   background: rgba(217, 199, 165, 0.8);
 }
 
+@keyframes marqueeLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-100% / 3)); }
+}
+
+.animate-marquee-left {
+  animation: marqueeLeft 35s linear infinite;
+}
+

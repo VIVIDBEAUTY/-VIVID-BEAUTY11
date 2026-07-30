@@ -25,6 +25,7 @@ export interface ReviewItem {
   name: string;
   text: string;
   date: string;
+  avatar?: string;
 }
 
 export interface IntegrationConfig {

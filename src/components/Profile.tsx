@@ -273,13 +273,7 @@ const CountdownTimer: React.FC<{ targetDate: Date }> = ({ targetDate }) => {
 
 const AppointmentCard: React.FC<{ appointment: any }> = ({ appointment }) => {
   const [showQr, setShowQr] = useState(false);
-  const qrData = JSON.stringify({
-    id: appointment.id,
-    date: appointment.date,
-    time: appointment.time,
-    services: appointment.services?.map((s: any) => s.name),
-    totalPrice: appointment.totalPrice
-  });
+  const qrData = `${window.location.origin}?ticket=${appointment.id}`;
 
   return (
     <div className="bg-stone-900/60 border border-amber-200/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative">
@@ -323,12 +317,22 @@ const AppointmentCard: React.FC<{ appointment: any }> = ({ appointment }) => {
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-xl font-bold text-amber-100 mb-6">رمز تأكيد الحجز</h3>
-            <div className="bg-white p-4 rounded-2xl inline-block mb-6">
+            <h3 className="text-xl font-bold text-amber-100 mb-6">تذكرة الحجز</h3>
+            <div className="bg-white p-4 rounded-2xl inline-block mb-4 shadow-lg">
               <QRCodeSVG value={qrData} size={200} level="H" />
             </div>
+            
+            <a 
+              href={qrData} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block w-full py-3 mt-2 mb-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold rounded-xl border border-amber-500/30 transition-colors"
+            >
+              عرض التذكرة الأنيقة
+            </a>
+
             <p className="text-stone-400 text-sm leading-relaxed mb-4">
-              يرجى إبراز هذا الرمز لموظفة الاستقبال عند وصولك للصالون لتأكيد حجزك.
+              يمكن لموظفة الاستقبال مسح هذا الرمز، أو يمكنك فتح التذكرة أعلاه.
             </p>
             <div className="bg-stone-950/50 p-3 rounded-xl border border-stone-800 text-amber-200/80 text-xs font-mono">
               رقم الحجز: {appointment.id.slice(0, 8).toUpperCase()}

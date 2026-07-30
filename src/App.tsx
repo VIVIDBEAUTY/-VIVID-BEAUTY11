@@ -7,6 +7,8 @@ import ViviBot from "./components/ViviBot";
 import DocGuide from "./components/DocGuide";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
+import Ticket from "./components/Ticket";
+import TechLogo from "./components/TechLogo";
 import { auth } from "./lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { 
@@ -109,7 +111,8 @@ export default function App() {
   const [reviews, setReviews] = useState(GOOGLE_REVIEWS);
 
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
-  const [view, setView] = useState<"home" | "services" | "booking" | "settings" | "guide" | "profile">("home");
+  const [view, setView] = useState<"home" | "services" | "booking" | "settings" | "guide" | "profile" | "ticket">("home");
+  const [ticketId, setTicketId] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -120,6 +123,36 @@ export default function App() {
     return localStorage.getItem("vivid_privacy_agreed") === "true";
   });
   const [flyingParticles, setFlyingParticles] = useState<{ id: number; x: number; y: number; label: string }[]>([]);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolledToBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
+      setIsAtBottom(scrolledToBottom);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleBookingNavigation = () => {
+    if (!currentUser) {
+      setPendingAction(() => () => setView("booking"));
+      setShowLoginModal(true);
+    } else {
+      setView("booking");
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tId = params.get("ticket");
+    if (tId) {
+      setTicketId(tId);
+      setView("ticket");
+    }
+  }, []);
   
   // Load config from localStorage or fallback to defaults
   const [config, setConfig] = useState<IntegrationConfig>(() => {
@@ -376,6 +409,10 @@ export default function App() {
 
   const totalPrice = selectedServices.reduce((sum, item) => sum + item.price, 0);
 
+  if (view === "ticket" && ticketId) {
+    return <Ticket ticketId={ticketId} />;
+  }
+
   return (
     <div className="relative min-h-screen text-stone-100 flex flex-col font-sans select-none overflow-x-hidden">
       {/* 1. Global Slideshow Background with elegant overlay filter */}
@@ -488,7 +525,7 @@ export default function App() {
                 ? "bg-amber-200/20 text-amber-200 border-amber-200"
                 : "bg-stone-900/60 text-stone-300 border-amber-200/10 hover:text-amber-200 hover:border-amber-200/30"
             }`}
-            title="حسابي"
+            title="حسابي / حجوزاتي"
           >
             <User className="w-4.5 h-4.5" />
           </button>
@@ -497,7 +534,7 @@ export default function App() {
           <button
             onClick={() => {
               if (selectedServices.length > 0) {
-                setView("booking");
+                handleBookingNavigation();
               } else {
                 setView("services");
               }
@@ -540,7 +577,7 @@ export default function App() {
               if (selectedServices.length === 0) {
                 setView("services");
               } else {
-                setView("booking");
+                handleBookingNavigation();
               }
             }}
             className="text-stone-100 hover:text-amber-250 py-1 font-medium border-b border-stone-800 flex justify-between items-center"
@@ -830,7 +867,7 @@ export default function App() {
                       إلغاء الكل
                     </button>
                     <button
-                      onClick={() => setView("booking")}
+                      onClick={handleBookingNavigation}
                       className="bg-amber-200 hover:bg-amber-300 text-stone-950 font-bold px-3 py-1 rounded-xl transition shadow-sm"
                     >
                       احجزي الآن
@@ -1030,7 +1067,7 @@ export default function App() {
             </button>
             
             <button
-              onClick={() => setView("booking")}
+              onClick={handleBookingNavigation}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-300 to-amber-100 hover:from-amber-400 hover:to-amber-200 text-stone-950 font-bold text-xs sm:text-sm transition transform hover:scale-[1.03] active:scale-[0.97] cursor-pointer shadow-lg shadow-amber-950/40"
             >
               احجزي الآن
@@ -1071,6 +1108,10 @@ export default function App() {
           <button onClick={() => setPrivacyOpen(true)} className="hover:text-amber-200 transition cursor-pointer font-bold">سياسة الخصوصية والاستخدام</button>
         </div>
       </footer>
+
+      <div className="relative z-40 bg-stone-950 pb-16 flex flex-col items-center">
+        <TechLogo className="w-24 h-auto opacity-70" />
+      </div>
 
       {/* 7. Flying Particles Rendering */}
       <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
@@ -1155,7 +1196,7 @@ export default function App() {
       
       {/* Vivi AI Bot */}
       <ViviBot 
-        hidden={selectedServices.length > 0 || view === 'booking'}
+        hidden={selectedServices.length > 0 || view === 'booking' || isAtBottom}
         config={{
           whatsappNumber: config.whatsappNumber,
           address: "حي النهضة، بريدة",
@@ -1167,10 +1208,18 @@ export default function App() {
       {/* Login Modal */}
       {showLoginModal && (
         <Login 
-          onClose={() => setShowLoginModal(false)} 
+          onClose={() => {
+            setShowLoginModal(false);
+            setPendingAction(null);
+          }} 
           onSuccess={() => {
             setShowLoginModal(false);
-            setView("profile");
+            if (pendingAction) {
+              pendingAction();
+              setPendingAction(null);
+            } else {
+              setView("profile");
+            }
           }} 
         />
       )}

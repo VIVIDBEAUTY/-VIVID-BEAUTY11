@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ServiceItem, IntegrationConfig } from "../types";
 import { auth, db } from "../lib/firebase";
 import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Calendar, 
   Phone, 
@@ -42,6 +43,7 @@ export default function BookingForm({
   const [time, setTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [ticketId, setTicketId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const user = auth.currentUser;
 
@@ -177,7 +179,7 @@ export default function BookingForm({
 
     try {
       // 0. Save to Firebase Firestore
-      await addDoc(collection(db, "appointments"), {
+      const docRef = await addDoc(collection(db, "appointments"), {
         userId: user ? user.uid : null,
         customerName: name,
         customerPhone: formattedPhone,
@@ -188,6 +190,7 @@ export default function BookingForm({
         status: "upcoming",
         createdAt: new Date().toISOString()
       });
+      setTicketId(docRef.id);
 
       // Update user name if they are logged in and it was empty/changed
       if (user) {
@@ -326,6 +329,20 @@ export default function BookingForm({
             <p className="text-stone-300 text-sm leading-relaxed max-w-sm mx-auto">
               لقد تم تسجيل موعدكِ المقترح بنجاح. سنتواصل معكِ فورا عبر واتساب لتأكيد الحجز النهائي وتجهيز استقبالكِ الملكي.
             </p>
+
+            {ticketId && (
+              <div className="bg-amber-500/5 border border-amber-200/15 rounded-3xl p-5 space-y-4 relative overflow-hidden flex flex-col items-center justify-center mt-4 mb-4">
+                <div className="bg-white p-3 rounded-2xl inline-block shadow-lg">
+                  <QRCodeSVG value={window.location.origin + '?ticket=' + ticketId} size={120} level="H" />
+                </div>
+                <button
+                  onClick={() => window.location.search = '?ticket=' + ticketId}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-500 text-stone-950 text-sm font-bold transition shadow-md hover:bg-amber-400 cursor-pointer"
+                >
+                  عرض التذكرة
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Rating invitation */}

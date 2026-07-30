@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ServiceItem, IntegrationConfig } from "./types";
 import { SERVICES_DATA } from "./data/servicesData";
 import BookingForm from "./components/BookingForm";
@@ -106,6 +106,8 @@ const SLIDESHOW_IMAGES = [
 ];
 
 export default function App() {
+  const [reviews, setReviews] = useState(GOOGLE_REVIEWS);
+
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
   const [view, setView] = useState<"home" | "services" | "booking" | "settings" | "guide" | "profile">("home");
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -118,7 +120,6 @@ export default function App() {
     return localStorage.getItem("vivid_privacy_agreed") === "true";
   });
   const [flyingParticles, setFlyingParticles] = useState<{ id: number; x: number; y: number; label: string }[]>([]);
-  const [reviews, setReviews] = useState(GOOGLE_REVIEWS);
   
   // Load config from localStorage or fallback to defaults
   const [config, setConfig] = useState<IntegrationConfig>(() => {
@@ -706,47 +707,46 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Reviews Marquee */}
-              <div className="relative flex overflow-hidden w-full py-2" dir="ltr">
-                <div className="flex gap-4 animate-marquee-left w-max cursor-default">
-                  {[...reviews, ...reviews, ...reviews].map((r, i) => (
-                    <div 
-                      key={`${r.id}-${i}`} 
-                      dir="rtl"
-                      className="bg-stone-900/80 border border-amber-200/10 hover:border-amber-200/30 rounded-3xl p-5 space-y-3.5 transition-all duration-300 relative overflow-hidden flex flex-col justify-between shrink-0 w-[280px] sm:w-[320px]"
-                    >
-                      <div className="absolute top-4 left-4 text-amber-200/5 select-none font-serif text-6xl font-black leading-none">
-                        ”
+              {/* Reviews Stack */}
+              <div className="relative w-full py-4 flex flex-col gap-4 items-center">
+                {reviews.map((r, i) => (
+                  <div 
+                    key={`${r.id}-${i}`} 
+                    className="bg-stone-900/80 border border-amber-200/10 hover:border-amber-200/30 rounded-3xl p-5 space-y-3.5 transition-all duration-300 relative flex flex-col justify-between w-full max-w-[340px]"
+                  >
+                    <div className="absolute top-4 left-4 text-amber-200/5 select-none font-serif text-6xl font-black leading-none">
+                      ”
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {/* Stars Row */}
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className="w-4 h-4 fill-amber-200 text-amber-200" />
+                        ))}
                       </div>
-                      
-                      <div className="space-y-2">
-                        {/* Stars Row */}
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} className="w-4 h-4 fill-amber-200 text-amber-200" />
-                          ))}
-                        </div>
-                        <p className="text-stone-200 text-xs md:text-sm leading-relaxed font-medium line-clamp-5">
+                      <div className="max-h-[120px] overflow-y-auto scrollbar-thin pr-1">
+                        <p className="text-stone-200 text-xs md:text-sm leading-relaxed font-medium">
                           {r.text}
                         </p>
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-3 pt-3 border-t border-amber-200/5 mt-auto">
-                        <div className="w-10 h-10 rounded-full border border-amber-200/20 flex items-center justify-center bg-stone-950 text-amber-200 overflow-hidden shrink-0">
-                          {r.avatar ? (
-                            <img src={r.avatar} alt={r.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                          ) : (
-                            <User className="w-5 h-5 text-amber-200/70" />
-                          )}
-                        </div>
-                        <div className="overflow-hidden">
-                          <h4 className="text-xs font-bold text-amber-100 truncate">{r.name}</h4>
-                          <span className="text-[10px] text-stone-450">{r.date}</span>
-                        </div>
+                    <div className="flex items-center gap-3 pt-3 border-t border-amber-200/5 mt-auto">
+                      <div className="w-10 h-10 rounded-full border border-amber-200/20 flex items-center justify-center bg-stone-950 text-amber-200 overflow-hidden shrink-0">
+                        {r.avatar ? (
+                          <img src={r.avatar} alt={r.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <User className="w-5 h-5 text-amber-200/70" />
+                        )}
+                      </div>
+                      <div className="overflow-hidden">
+                        <h4 className="text-xs font-bold text-amber-100 truncate">{r.name}</h4>
+                        <span className="text-[10px] text-stone-450">{r.date}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
 
               {/* Rate Us CTA */}

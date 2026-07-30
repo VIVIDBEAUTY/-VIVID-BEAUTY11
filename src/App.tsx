@@ -8,7 +8,6 @@ import DocGuide from "./components/DocGuide";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
 import Ticket from "./components/Ticket";
-import TechLogo from "./components/TechLogo";
 import { auth } from "./lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { 
@@ -1108,10 +1107,6 @@ export default function App() {
           <button onClick={() => setPrivacyOpen(true)} className="hover:text-amber-200 transition cursor-pointer font-bold">سياسة الخصوصية والاستخدام</button>
         </div>
       </footer>
-
-      <div className="relative z-40 bg-stone-950 pb-16 flex flex-col items-center">
-        <TechLogo className="w-24 h-auto opacity-70" />
-      </div>
 
       {/* 7. Flying Particles Rendering */}
       <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">

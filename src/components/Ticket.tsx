@@ -70,11 +70,9 @@ export default function Ticket({ ticketId }: { ticketId: string }) {
           {/* Header */}
           <div className="bg-[#24201c] p-6 text-center relative border-b border-amber-200/10">
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-200/50 to-transparent"></div>
-            <Sparkles className="w-6 h-6 text-amber-200/50 mx-auto mb-2" />
-            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-100 to-amber-300 tracking-wide font-serif">
-              VIVID BEAUTY
+            <h1 className="text-xl font-bold text-amber-200">
+              تذكرة الموعد
             </h1>
-            <p className="text-stone-400 text-xs mt-1 tracking-widest uppercase">VIP Appointment</p>
           </div>
 
           {/* Body */}

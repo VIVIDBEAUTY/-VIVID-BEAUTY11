@@ -328,7 +328,7 @@ const AppointmentCard: React.FC<{ appointment: any }> = ({ appointment }) => {
               rel="noopener noreferrer"
               className="block w-full py-3 mt-2 mb-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold rounded-xl border border-amber-500/30 transition-colors"
             >
-              عرض التذكرة الأنيقة
+              عرض التذكرة
             </a>
 
             <p className="text-stone-400 text-sm leading-relaxed mb-4">

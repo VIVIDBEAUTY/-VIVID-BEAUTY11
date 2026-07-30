@@ -456,7 +456,7 @@ export default function BookingForm({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="مثال: سارة محمد"
+              placeholder="مثال: الاسم"
               className="w-full text-sm bg-stone-950/60 border border-amber-200/10 rounded-xl px-3 py-2.5 text-stone-100 focus:border-amber-300 focus:outline-none placeholder-stone-600"
             />
           </div>

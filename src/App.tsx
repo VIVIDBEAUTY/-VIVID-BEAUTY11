@@ -35,6 +35,38 @@ import {
   ExternalLink
 } from "lucide-react";
 
+const LuxCodIcon = ({ className = "w-5 h-5 rounded-sm inline-block shadow-sm" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" className={className}>
+    <defs>
+      <radialGradient id="luxcod_bgGradient" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stopColor="#0e2a47" />
+        <stop offset="100%" stopColor="#030b14" />
+      </radialGradient>
+      <linearGradient id="luxcod_goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#dfb36a" />
+        <stop offset="50%" stopColor="#c5923b" />
+        <stop offset="100%" stopColor="#8a5c1e" />
+      </linearGradient>
+      <filter id="luxcod_neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#luxcod_bgGradient)" rx="200" />
+    <circle cx="512" cy="512" r="330" fill="none" stroke="url(#luxcod_goldGradient)" strokeWidth="12" opacity="0.9" />
+    <path d="M 370 330 h 60 v 260 h 170 v 60 h -230 z" fill="url(#luxcod_goldGradient)" />
+    <g filter="url(#luxcod_neonGlow)" stroke="#00f3ff" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <path d="M 520 440 L 450 512 L 520 584" />
+      <path d="M 570 420 L 530 604" />
+      <path d="M 590 440 L 660 512 L 590 584" />
+    </g>
+  </svg>
+);
+
 const GOOGLE_REVIEWS = [
   {
     id: 1,
@@ -1113,9 +1145,24 @@ export default function App() {
       )}
 
       {/* 6. Elegant Luxury Footer */}
-      <footer className="bg-stone-950 text-stone-300 py-8 text-center text-xs space-y-2 mt-auto border-t border-amber-200/10 rounded-t-[40px] shadow-inner font-sans">
-        <p className="font-sans">© {new Date().getFullYear()} صالون ڤيڤيد بيوتي | VIVID BEAUTY Salon. جميع الحقوق محفوظة.</p>
-        <div className="flex justify-center items-center gap-4 text-[10px] text-stone-400 flex-wrap">
+      <footer className="relative z-40 bg-stone-950 text-stone-300 pt-10 pb-36 md:pb-20 text-center text-xs space-y-6 mt-auto border-t border-amber-200/10 rounded-t-[40px] shadow-inner font-sans">
+        <p className="font-sans text-stone-400">© {new Date().getFullYear()} صالون ڤيڤيد بيوتي | VIVID BEAUTY Salon. جميع الحقوق محفوظة.</p>
+        
+        <div className="flex flex-col justify-center items-center gap-2">
+          <span className="text-[11px] font-medium tracking-wide text-stone-500 uppercase">
+            Powered by
+          </span>
+          <a 
+            href="https://luxcod.online" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:scale-105 hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all duration-300 cursor-pointer z-20 flex items-center justify-center rounded-[28px]"
+          >
+            <LuxCodIcon className="w-16 h-16 rounded-[28px] shadow-lg" />
+          </a>
+        </div>
+
+        <div className="flex justify-center items-center gap-4 text-[10px] text-stone-400 flex-wrap relative z-20">
           {isAdmin && (
             <>
               <button onClick={() => setView("settings")} className="hover:text-amber-200 transition cursor-pointer">الإعدادات البرمجية</button>
@@ -1232,54 +1279,6 @@ export default function App() {
           }} 
         />
       )}
-
-      {/* Luxury Suspend/Blur Overlay Screen */}
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 bg-stone-950/85 backdrop-blur-3xl animate-fadeIn select-text">
-        {/* Glow Effects */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-[#D4AF37]/10 blur-[120px] pointer-events-none" />
-        
-        <div className="bg-stone-900/90 border border-[#D4AF37]/20 rounded-[32px] max-w-md w-full p-6 md:p-8 space-y-6 relative shadow-2xl text-center font-sans">
-          
-          {/* Subtle elegant gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#D4AF37]/5 via-transparent to-transparent rounded-[32px] pointer-events-none" />
-
-          {/* Golden Badge Header */}
-          <div className="flex flex-col items-center space-y-3">
-            <div className="bg-[#D4AF37]/10 w-16 h-16 rounded-full flex items-center justify-center border border-[#D4AF37]/25 shadow-inner">
-              <Lock className="w-8 h-8 text-[#D4AF37] animate-pulse" />
-            </div>
-            <span className="text-[10px] uppercase tracking-widest text-[#D4AF37]/80 font-bold">إشعار من النظام</span>
-          </div>
-
-          {/* Title and message */}
-          <div className="space-y-3">
-            <h2 className="text-xl md:text-2xl font-black text-amber-100 leading-snug">
-              الخدمات معلقة مؤقتاً
-            </h2>
-            <p className="text-xs md:text-sm text-stone-300 leading-relaxed text-center px-2">
-              عذراً عميلنا الكريم، تم تعليق خدمات الحجز الإلكتروني والمنصة مؤقتاً. للاستفادة من كافة الخدمات البرمجية وحجز المواعيد بشكل كامل، يرجى مراجعة الشركة المطورة والمزودة للخدمة.
-            </p>
-          </div>
-
-          {/* Dynamic Interactive Button */}
-          <div className="pt-4 border-t border-amber-200/10">
-            <a 
-              href="https://luxcod.online" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-amber-500 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2.5 shadow-lg shadow-[#D4AF37]/15 hover:shadow-[#D4AF37]/25 hover:scale-[1.02] cursor-pointer"
-            >
-              <span>مراجعة الشركة المطورة LuxCod</span>
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-
-          {/* Professional Footer */}
-          <p className="text-[10px] text-stone-500 font-medium">
-            جميع حقوق البرمجة والتطوير محفوظة لدى LuxCod © {new Date().getFullYear()}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
